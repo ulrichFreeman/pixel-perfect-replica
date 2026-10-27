@@ -28,12 +28,15 @@ export async function generateEbookPdf(ebook: Ebook): Promise<Blob> {
     doc.setFont("Report", bold ? "bold" : "normal"); doc.setFontSize(size);
     const lines = doc.splitTextToSize(value, 174) as string[];
     const lineHeight = size * 0.46;
+    const paragraphHeight = lines.length * lineHeight + 3;
+    if (paragraphHeight < 240) ensure(paragraphHeight);
     for (const line of lines) { ensure(lineHeight); doc.text(line, 18, y); y += lineHeight; }
     y += 3;
   };
   const heading = (value: string) => { ensure(22); y += 4; text(value, 15, true); };
   const table = (head: string[], body: (string | number)[][]) => {
-    ensure(22);
+    const estimatedHeight = (body.length + 1) * 12 + 8;
+    ensure(estimatedHeight <= 220 ? estimatedHeight : 22);
     autoTable(doc, { startY: y, head: [head], body, margin: { left: 18, right: 18, top: 24, bottom: 24 }, styles: { font: "Report", fontSize: 10, cellPadding: 3, overflow: "linebreak" }, headStyles: { fillColor: rgb, fontStyle: "bold" }, rowPageBreak: "avoid" });
     const final = (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY;
     y = (final ?? y) + 7;
@@ -79,7 +82,7 @@ export async function generateEbookPdf(ebook: Ebook): Promise<Blob> {
       text(snapshot.explanations.unavailable, 12, true);
       p.reasons.forEach(reason => text(snapshot.reasons[reason]));
     }
-    heading("Méthode et explications"); text(snapshot.explanations.method); text("V : victoire, N : nul, D : défaite. Les buts des équipes sont supposés indépendants. La grille 0–10 buts est renormalisée; sa masse couverte est indiquée ci-dessus."); text(snapshot.explanations.disclaimer, 12, true);
+    ensure(65); heading("Méthode et explications"); text(snapshot.explanations.method); text("V : victoire, N : nul, D : défaite. Les buts des équipes sont supposés indépendants. La grille 0–10 buts est renormalisée; sa masse couverte est indiquée ci-dessus."); text(snapshot.explanations.disclaimer, 12, true);
     newPage(); heading("Sources et données de calcul"); text(`Source du match : ${entry.match.source}. Données arrêtées avant ${fmtDateTime(entry.match.kickoff)}.`, 11);
     for (const [team, history] of [[entry.match.home, entry.homeHistory], [entry.match.away, entry.awayHistory]] as const) {
       heading(team);
