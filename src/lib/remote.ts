@@ -22,7 +22,7 @@ export async function loadRealData(): Promise<AppData> {
   for (const s of check(stats)) {
     const name = teamName.get(s.team_id) ?? "?";
     if (!hist.has(name)) hist.set(name, { team: name, games: [], isDemo: false });
-    hist.get(name)!.games.push({ date: s.match_date, opponent: s.opponent, venue: s.venue === "E" ? "E" : "D", gf: s.goals_for, ga: s.goals_against });
+    hist.get(name)?.games.push({ date: s.match_date, opponent: s.opponent, venue: s.venue === "E" ? "E" : "D", gf: s.goals_for, ga: s.goals_against, source: s.source });
   }
   const logRows = check(logs);
   return {
@@ -42,6 +42,7 @@ export async function loadRealData(): Promise<AppData> {
       id: r.id, title: r.title, subtitle: r.subtitle, publicationDate: r.publication_date, coverColor: r.cover_color,
       analysisIds: r.analysis_ids, createdAt: r.created_at, status: r.status as Ebook["status"],
       publishedAt: r.published_at ?? undefined, fileName: r.file_name,
+      version: r.version, generatedAt: r.generated_at, snapshot: r.snapshot ? r.snapshot as unknown as Ebook["snapshot"] : undefined,
     })),
     logs: logRows.map((l) => ({ date: l.created_at, level: l.level as "info" | "erreur", message: l.message })),
     lastSync: logRows[0]?.created_at ?? null,
@@ -59,6 +60,7 @@ export async function saveEbook(e: Ebook) {
   check(await supabase.from("pdf_reports").upsert({
     id: e.id, title: e.title, subtitle: e.subtitle, publication_date: e.publicationDate.slice(0, 10), cover_color: e.coverColor,
     analysis_ids: e.analysisIds, file_name: e.fileName, status: e.status, published_at: e.publishedAt ?? null,
+    snapshot: e.snapshot as never, version: e.version ?? 1, generated_at: e.generatedAt ?? e.createdAt,
   }));
 }
 

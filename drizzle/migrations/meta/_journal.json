@@ -15,6 +15,13 @@
       "when": 1791889842588,
       "tag": "0001_first_admin_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793092156682,
+      "tag": "0002_report_snapshots",
+      "breakpoints": true
     }
   ]
 }
