@@ -98,7 +98,8 @@ export async function generateEbookPdf(ebook: Ebook): Promise<Blob> {
   const pages = doc.getNumberOfPages();
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i); doc.setFont("Report", "normal"); doc.setFontSize(8);
-    doc.setTextColor(...(i === 1 ? [255, 255, 255] as const : [90, 95, 100] as const));
+    if (i === 1) doc.setTextColor(255, 255, 255);
+    else doc.setTextColor(90, 95, 100);
     doc.text(`FootData · v${ebook.version ?? 1} · ${demo ? "DÉMO FICTIVE" : "DONNÉES RÉELLES"}`, 18, 286);
     doc.text(`${i} / ${pages}`, 192, 286, { align: "right" });
   }
