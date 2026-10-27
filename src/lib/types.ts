@@ -20,6 +20,7 @@ export interface PastGame {
   venue: "D" | "E";
   gf: number;
   ga: number;
+  source?: string;
 }
 
 export interface TeamHistory {
@@ -63,6 +64,9 @@ export interface Ebook {
   status: "généré" | "publié";
   publishedAt?: string;
   fileName: string;
+  version?: number;
+  generatedAt?: string;
+  snapshot?: import("./report").ReportSnapshot;
 }
 
 export interface SyncLog {

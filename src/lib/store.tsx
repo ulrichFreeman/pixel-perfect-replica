@@ -28,8 +28,8 @@ interface Store {
   updateAnalysis: (id: string, patch: { summary?: string; selection?: string }) => void;
   createAnalysis: (matchId: string) => string;
   setOutcome: (id: string, outcome: "réussie" | "échouée" | null) => void;
-  addEbook: (e: Ebook) => void;
-  publishEbook: (id: string) => void;
+  addEbook: (e: Ebook) => Promise<void>;
+  publishEbook: (id: string) => Promise<void>;
   importMatches: (m: Match[]) => Promise<number>;
   resetDemo: () => void;
   clearDemo: () => void;
@@ -119,24 +119,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (isReal) saveAnalysis(a).catch(fail);
       return id;
     },
-    addEbook: (e) => {
-      const eb = isReal ? { ...e, id: crypto.randomUUID() } : e;
-      setData((d) => ({ ...d, ebooks: [eb, ...d.ebooks] }));
-      if (isReal) saveEbook(eb).catch(fail);
+    addEbook: async (e) => {
+      if (!e.snapshot || e.snapshot.mode !== mode) throw new Error("Espace d’archivage incohérent.");
+      if (isReal) {
+        if (!isAdmin) throw new Error("Accès administrateur requis.");
+        await saveEbook(e);
+      }
+      setData((d) => ({ ...d, ebooks: [e, ...d.ebooks] }));
     },
-    publishEbook: (id) => {
+    publishEbook: async (id) => {
       const eb = data.ebooks.find((e) => e.id === id);
       if (!eb) return;
       const pub = { ...eb, status: "publié" as const, publishedAt: nowIso() };
+      if (!eb.snapshot) throw new Error("Ce rapport ancien n’a pas d’instantané archivé.");
+      if (isReal) {
+        if (!isAdmin) throw new Error("Accès administrateur requis.");
+        await saveEbook(pub);
+        await Promise.all(real.analyses.filter((a) => eb.analysisIds.includes(a.id) && a.updatedAt === eb.snapshot?.entries.find((x) => x.analysis.id === a.id)?.analysis.updatedAt).map((a) => saveAnalysis({ ...a, status: "publiée" })));
+      }
       setData((d) => ({
         ...d,
         ebooks: d.ebooks.map((e) => (e.id === id ? pub : e)),
-        analyses: d.analyses.map((a) => (eb.analysisIds.includes(a.id) ? { ...a, status: "publiée" } : a)),
+        analyses: d.analyses.map((a) => (eb.analysisIds.includes(a.id) && a.updatedAt === eb.snapshot?.entries.find((x) => x.analysis.id === a.id)?.analysis.updatedAt ? { ...a, status: "publiée" } : a)),
       }));
-      if (isReal) {
-        saveEbook(pub).catch(fail);
-        real.analyses.filter((a) => eb.analysisIds.includes(a.id)).forEach((a) => saveAnalysis({ ...a, status: "publiée" }).catch(fail));
-      }
     },
     importMatches: async (m) => {
       if (isReal) {
