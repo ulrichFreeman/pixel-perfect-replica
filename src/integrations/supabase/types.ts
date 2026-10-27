@@ -176,36 +176,45 @@ export type Database = {
           cover_color: string
           created_at: string
           file_name: string
+          generated_at: string
           id: string
           publication_date: string
           published_at: string | null
+          snapshot: Json | null
           status: string
           subtitle: string
           title: string
+          version: number
         }
         Insert: {
           analysis_ids?: string[]
           cover_color: string
           created_at?: string
           file_name: string
+          generated_at?: string
           id?: string
           publication_date: string
           published_at?: string | null
+          snapshot?: Json | null
           status?: string
           subtitle?: string
           title: string
+          version?: number
         }
         Update: {
           analysis_ids?: string[]
           cover_color?: string
           created_at?: string
           file_name?: string
+          generated_at?: string
           id?: string
           publication_date?: string
           published_at?: string | null
+          snapshot?: Json | null
           status?: string
           subtitle?: string
           title?: string
+          version?: number
         }
         Relationships: []
       }

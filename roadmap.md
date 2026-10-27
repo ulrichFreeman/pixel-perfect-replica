@@ -1,0 +1,3 @@
+- [ ] Générer un PDF A4 complet à partir d’analyses validées uniquement.
+- [ ] Archiver une version figée des statistiques, sources et probabilités en séparant démo et réel.
+- [ ] Vérifier les règles, le téléchargement et la lisibilité du PDF.
